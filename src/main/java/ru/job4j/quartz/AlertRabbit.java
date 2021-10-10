@@ -14,46 +14,58 @@ import static org.quartz.SimpleScheduleBuilder.*;
 
 
 public class AlertRabbit {
-    private static Properties config;
 
-    public static void main(String[] args) throws ClassNotFoundException {
-        initRabbit();
-        Class.forName(config.getProperty("driver-class-name"));
-        try (Connection con = DriverManager.getConnection(
-                config.getProperty("url"),
-                config.getProperty("username"),
-                config.getProperty("password")
-        )) {
-            try {
-                Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
-                scheduler.start();
-                JobDataMap data = new JobDataMap();
-                data.put("connect", con);
-                JobDetail job = newJob(Rabbit.class)
-                        .usingJobData(data)
-                        .build();
-                SimpleScheduleBuilder times = simpleSchedule()
-                        .withIntervalInSeconds(Integer.parseInt(config.getProperty("rabbit.interval")))
-                        .repeatForever();
-                Trigger trigger = newTrigger()
-                        .startNow()
-                        .withSchedule(times)
-                        .build();
-                scheduler.scheduleJob(job, trigger);
-                Thread.sleep(10000);
-                scheduler.shutdown();
-            } catch (Exception se) {
-                se.printStackTrace();
-            }
-        } catch (SQLException throwables) {
+    public static void main(String[] args) {
+        Properties config = getProperty();
+        try (Connection con = getConnection(config)) {
+            Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
+            scheduler.start();
+            JobDataMap data = new JobDataMap();
+            data.put("connect", con);
+            JobDetail job = newJob(Rabbit.class)
+                    .usingJobData(data)
+                    .build();
+            SimpleScheduleBuilder times = simpleSchedule()
+                    .withIntervalInSeconds(Integer.parseInt(config.getProperty("rabbit.interval")))
+                    .repeatForever();
+            Trigger trigger = newTrigger()
+                    .startNow()
+                    .withSchedule(times)
+                    .build();
+            scheduler.scheduleJob(job, trigger);
+            Thread.sleep(10000);
+            scheduler.shutdown();
+        } catch (SQLException | SchedulerException | InterruptedException throwables) {
             throwables.printStackTrace();
         }
     }
 
-    public static void initRabbit() {
+    public static Connection getConnection(Properties config) {
+        try {
+            Class.forName(config.getProperty("driver-class-name"));
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(
+                    config.getProperty("url"),
+                    config.getProperty("username"),
+                    config.getProperty("password")
+            );
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return conn;
+    }
+
+
+    public static Properties getProperty() {
         try (InputStream in = AlertRabbit.class.getClassLoader().getResourceAsStream("rabbit.properties")) {
-            config = new Properties();
+            Properties config = new Properties();
             config.load(in);
+            return config;
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -68,18 +80,13 @@ public class AlertRabbit {
         public void execute(JobExecutionContext context) {
             System.out.println("Rabbit runs here ...");
             Connection connect = (Connection) context.getJobDetail().getJobDataMap().get("connect");
-            insert(connect);
-        }
-
-        public void insert(Connection cn) {
             try (PreparedStatement statement =
-                         cn.prepareStatement("insert into rabbit(created_date) values (?)")) {
+                         connect.prepareStatement("insert into rabbit(created_date) values (?)")) {
                 statement.setDate(1, Date.valueOf(LocalDate.now()));
                 statement.execute();
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
             }
         }
-
     }
 }
