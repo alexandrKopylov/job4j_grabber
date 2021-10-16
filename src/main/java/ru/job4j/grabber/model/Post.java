@@ -6,16 +6,13 @@ import java.util.Objects;
 public class Post {
     private int id;
     private String title;
-    private String link;
     private String description;
+    private String link;
+    private LocalDateTime update;
     private LocalDateTime created;
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getTitle() {
@@ -26,6 +23,14 @@ public class Post {
         this.title = title;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public String getLink() {
         return link;
     }
@@ -34,12 +39,12 @@ public class Post {
         this.link = link;
     }
 
-    public String getDescription() {
-        return description;
+    public LocalDateTime getUpdate() {
+        return update;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setUpdate(LocalDateTime update) {
+        this.update = update;
     }
 
     public LocalDateTime getCreated() {
@@ -59,33 +64,27 @@ public class Post {
             return false;
         }
         Post post = (Post) o;
-        return title.equals(post.title)
-                && link.equals(post.link)
-                && description.equals(post.description)
-                && created.equals(post.created);
+        return Objects.equals(title, post.title) &&
+                Objects.equals(description, post.description) &&
+                Objects.equals(link, post.link) &&
+                Objects.equals(update, post.update) &&
+                Objects.equals(created, post.created);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(title, link, description, created);
+        return Objects.hash(title, description, link, update, created);
     }
 
     @Override
     public String toString() {
         return "Post{"
-                + "id="
-                + id
-                + ", title='"
-                + title
-                + '\''
-                + ", link='"
-                + link
-                + '\''
-                + ", description='"
-                + description
-                + '\''
-                + ", created="
-                + created
+                + "id=" + id
+                + ", title='" + title + '\''
+                + ", description='" + description + '\''
+                + ", link='" + link + '\''
+                + ", update=" + update
+                + ", created=" + created
                 + '}';
     }
 }
