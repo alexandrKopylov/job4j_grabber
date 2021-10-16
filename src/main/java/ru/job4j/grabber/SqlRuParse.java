@@ -34,12 +34,13 @@ public class SqlRuParse implements Parse {
             Element parent = td.parent();
             jobDate = parent.child(5).text();
             jobHref = href.attr("href");
+
+            Post post = detail(jobHref);
+            post.setTitle(jobText);
+            post.setUpdate(dateTimeParser.parse(jobDate));
+            post.setLink(jobHref);
+            postList.add(post);
         }
-        Post post = detail(jobHref);
-        post.setTitle(jobText);
-        post.setCreated(dateTimeParser.parse(jobDate));
-        post.setLink(jobHref);
-        postList.add(post);
         return postList;
     }
 
@@ -48,10 +49,10 @@ public class SqlRuParse implements Parse {
         Post post = new Post();
         Document doc = Jsoup.connect(link).get();
         Elements descriptionJob = doc.select(".msgBody");
-       // post.setDescription(descriptionJob.get(1).text());
+        post.setDescription(descriptionJob.get(1).text());
         Elements selectAllFooter = doc.select(".msgFooter");
         String descriptionTime = selectAllFooter.get(0).text();
-        post.setUpdate(dateTimeParser.parse(descriptionTime.substring(0, 16)));
+        post.setCreated(dateTimeParser.parse(descriptionTime.substring(0, 16)));
         return post;
     }
 
@@ -66,8 +67,8 @@ public class SqlRuParse implements Parse {
     public static void main(String[] args) throws IOException {
         SqlRuDateTimeParser sdtp = new SqlRuDateTimeParser();
         SqlRuParse sqlRuParse = new SqlRuParse(sdtp);
-        List<Post> postList = sqlRuParse.parseHTML("https://www.sql.ru/forum/job-offers", 1);
-        for (Post post: postList){
+        List<Post> postList = sqlRuParse.parseHTML("https://www.sql.ru/forum/job-offers", 3);
+        for (Post post : postList) {
             System.out.println(post);
         }
     }
