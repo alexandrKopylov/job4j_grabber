@@ -15,6 +15,10 @@ public class Post {
         return id;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -64,11 +68,11 @@ public class Post {
             return false;
         }
         Post post = (Post) o;
-        return Objects.equals(title, post.title) &&
-                Objects.equals(description, post.description) &&
-                Objects.equals(link, post.link) &&
-                Objects.equals(update, post.update) &&
-                Objects.equals(created, post.created);
+        return Objects.equals(title, post.title)
+                && Objects.equals(description, post.description)
+                && Objects.equals(link, post.link)
+                && Objects.equals(update, post.update)
+                && Objects.equals(created, post.created);
     }
 
     @Override

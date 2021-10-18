@@ -1,4 +1,4 @@
-package ru.job4j.grabber;
+package ru.job4j.grabber.parse;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -19,6 +19,7 @@ public class SqlRuParse implements Parse {
     public SqlRuParse(DateTimeParser dateTimeParser) {
         this.dateTimeParser = dateTimeParser;
     }
+
 
     @Override
     public List<Post> list(String link) throws IOException {
@@ -48,7 +49,7 @@ public class SqlRuParse implements Parse {
         Post post = new Post();
         Document doc = Jsoup.connect(link).get();
         Elements descriptionJob = doc.select(".msgBody");
-       // post.setDescription(descriptionJob.get(1).text());
+        // post.setDescription(descriptionJob.get(1).text());
         Elements selectAllFooter = doc.select(".msgFooter");
         String descriptionTime = selectAllFooter.get(0).text();
         post.setUpdate(dateTimeParser.parse(descriptionTime.substring(0, 16)));
@@ -67,7 +68,7 @@ public class SqlRuParse implements Parse {
         SqlRuDateTimeParser sdtp = new SqlRuDateTimeParser();
         SqlRuParse sqlRuParse = new SqlRuParse(sdtp);
         List<Post> postList = sqlRuParse.parseHTML("https://www.sql.ru/forum/job-offers", 1);
-        for (Post post: postList){
+        for (Post post : postList) {
             System.out.println(post);
         }
     }
