@@ -5,6 +5,9 @@ import ru.job4j.quartz.AlertRabbit;
 
 import java.io.InputStream;
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
 
@@ -37,7 +40,7 @@ public class PsqlStore implements Store, AutoCloseable {
             statement.setString(1, post.getTitle());
             statement.setString(2, post.getDescription());
             statement.setString(3, post.getLink());
-            statement.setTimestamp(4, Timestamp.valueOf(post.getCreated()));                 //Timestamp.valueOf(item.getCreated()));
+            statement.setTimestamp(4, Timestamp.valueOf(post.getCreated()));
             statement.execute();
 
         } catch (Exception e) {
@@ -47,12 +50,45 @@ public class PsqlStore implements Store, AutoCloseable {
 
     @Override
     public List<Post> getAll() {
-        return null;
+        List<Post> postList = new ArrayList<>();
+        try (PreparedStatement statement = cnn.prepareStatement("select * from post")) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    postList.add(new Post(
+                            resultSet.getInt("id"),
+                            resultSet.getString("name"),
+                            resultSet.getString("text"),
+                            resultSet.getString("link"),
+                            resultSet.getTimestamp("created").toLocalDateTime()
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return postList;
     }
 
     @Override
     public Post findById(int id) {
-        return null;
+        Post result = null;
+        try (PreparedStatement statement = cnn.prepareStatement("select * from post where id =  ? ;")) {
+            statement.setInt(1, id);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return new Post(
+                            resultSet.getInt("id"),
+                            resultSet.getString("name"),
+                            resultSet.getString("text"),
+                            resultSet.getString("link"),
+                            resultSet.getTimestamp("created").toLocalDateTime()
+                    );
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     @Override
@@ -61,18 +97,4 @@ public class PsqlStore implements Store, AutoCloseable {
             cnn.close();
         }
     }
-
-//    public static void main(String[] args) {
-//        Properties
-//
-//        try (InputStream in = AlertRabbit.class.getClassLoader().getResourceAsStream("rabbit.properties")) {
-//            Properties config = new Properties();
-//            config.load(in);
-//            return config;
-//        } catch (Exception e) {
-//            throw new IllegalStateException(e);
-//        }
-//    }
-
-
 }
