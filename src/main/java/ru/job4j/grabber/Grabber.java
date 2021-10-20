@@ -65,8 +65,9 @@ public class Grabber implements Grab {
             List<Post> postList;
             try {
                 postList = parse.list("https://www.sql.ru/forum/job-offers");
-                for (Post post : postList)
-                store.save(post);
+                for (Post post : postList) {
+                    store.save(post);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
