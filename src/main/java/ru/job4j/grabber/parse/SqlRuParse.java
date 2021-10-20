@@ -24,23 +24,25 @@ public class SqlRuParse implements Parse {
     @Override
     public List<Post> list(String link) throws IOException {
         List<Post> postList = new ArrayList<>();
-        Document doc = Jsoup.connect(link).get();
-        Elements row = doc.select(".postslisttopic");
-        String jobText = null;
-        String jobDate = null;
-        String jobHref = null;
-        for (Element td : row) {
-            Element href = td.child(0);
-            jobText = href.text();
-            Element parent = td.parent();
-            jobDate = parent.child(5).text();
-            jobHref = href.attr("href");
+        for (int i = 1; i < 6; i++) {
+            Document doc = Jsoup.connect(link + "/" + i).get();
+            Elements row = doc.select(".postslisttopic");
+            String jobText = null;
+            String jobDate = null;
+            String jobHref = null;
+            for (Element td : row) {
+                Element href = td.child(0);
+                jobText = href.text();
+                Element parent = td.parent();
+                jobDate = parent.child(5).text();
+                jobHref = href.attr("href");
+            }
+            Post post = detail(jobHref);
+            post.setTitle(jobText);
+            post.setCreated(dateTimeParser.parse(jobDate));
+            post.setLink(jobHref);
+            postList.add(post);
         }
-        Post post = detail(jobHref);
-        post.setTitle(jobText);
-        post.setCreated(dateTimeParser.parse(jobDate));
-        post.setLink(jobHref);
-        postList.add(post);
         return postList;
     }
 
@@ -56,18 +58,10 @@ public class SqlRuParse implements Parse {
         return post;
     }
 
-    public List<Post> parseHTML(String sait, int countPages) throws IOException {
-        List<Post> postList = new ArrayList<>();
-        for (int i = 1; i <= countPages; i++) {
-            postList.addAll(list(sait + "/" + i));
-        }
-        return postList;
-    }
-
     public static void main(String[] args) throws IOException {
         SqlRuDateTimeParser sdtp = new SqlRuDateTimeParser();
         SqlRuParse sqlRuParse = new SqlRuParse(sdtp);
-        List<Post> postList = sqlRuParse.parseHTML("https://www.sql.ru/forum/job-offers", 1);
+        List<Post> postList = sqlRuParse.list("https://www.sql.ru/forum/job-offers");
         for (Post post : postList) {
             System.out.println(post);
         }
