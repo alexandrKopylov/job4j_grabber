@@ -46,8 +46,7 @@ public class Grabber implements Grab {
     }
 
     public Store store() {
-        return new MemStore();
-
+        return new PsqlStore(cfg);
     }
 
     public Scheduler scheduler() throws SchedulerException {
