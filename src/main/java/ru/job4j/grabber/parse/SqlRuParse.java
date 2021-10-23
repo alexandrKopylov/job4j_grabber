@@ -24,24 +24,28 @@ public class SqlRuParse implements Parse {
     @Override
     public List<Post> list(String link) throws IOException {
         List<Post> postList = new ArrayList<>();
-        for (int i = 1; i < 6; i++) {
+        for (int i = 1; i <= 1; i++) {
             Document doc = Jsoup.connect(link + "/" + i).get();
             Elements row = doc.select(".postslisttopic");
             String jobText = null;
             String jobDate = null;
             String jobHref = null;
+
             for (Element td : row) {
                 Element href = td.child(0);
-                jobText = href.text();
-                Element parent = td.parent();
-                jobDate = parent.child(5).text();
-                jobHref = href.attr("href");
+                if (href.text().toLowerCase().contains("java")) {
+                    jobText = href.text();
+                    Element parent = td.parent();
+                    jobDate = parent.child(5).text();
+                    jobHref = href.attr("href");
+                    Post post = detail(jobHref);
+                    post.setTitle(jobText);
+                    post.setCreated(dateTimeParser.parse(jobDate));
+                    post.setLink(jobHref);
+                    postList.add(post);
+                }
             }
-            Post post = detail(jobHref);
-            post.setTitle(jobText);
-            post.setCreated(dateTimeParser.parse(jobDate));
-            post.setLink(jobHref);
-            postList.add(post);
+
         }
         return postList;
     }
